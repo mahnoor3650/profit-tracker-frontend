@@ -11,6 +11,7 @@ import API from "./api";
 function App() {
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(0);
+  const [latestRecord, setLatestRecord] = useState(null);
 
   const refresh = () => setRefreshFlag((prev) => !prev);
 
@@ -25,6 +26,14 @@ function App() {
         else net += p.amount;
       });
       setCurrentBalance((inv.data?.amount || 0) + net + withdrawal);
+      
+      // Find the latest record across all types
+      if (profits.data.length > 0) {
+        const latest = profits.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+        setLatestRecord(latest);
+      } else {
+        setLatestRecord(null);
+      }
     };
     fetchBalance();
   }, [refreshFlag]);
@@ -38,9 +47,9 @@ function App() {
         <Summary refreshFlag={refreshFlag} />
         <InvestmentForm onSet={refresh} />
         <ProfitForm onAdd={refresh} currentBalance={currentBalance} />
-        <ProfitTable refreshFlag={refreshFlag} />
+        <ProfitTable refreshFlag={refreshFlag} onRefresh={refresh} latestRecord={latestRecord} />
         <WithdrawForm onWithdraw={refresh} currentBalance={currentBalance} />
-        <WithdrawalsTable refreshFlag={refreshFlag} />
+        <WithdrawalsTable refreshFlag={refreshFlag} onRefresh={refresh} latestRecord={latestRecord} />
       </div>
     </div>
   );
